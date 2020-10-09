@@ -2,6 +2,8 @@ package org.combinator.demo;
 
 
 import org.combinator.demo.constants.MessagesConstants;
+import org.combinator.demo.service.CombinatorService;
+import org.combinator.demo.service.impl.CombinatorServiceImpl;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -18,19 +20,11 @@ public class CombinatorApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(CombinatorApplication.class.getName());
 
-    Properties applicationProperties;
-    WebDriver webDriver;
-
-    public CombinatorApplication(WebDriver webDriver, Properties properties){
-        this.applicationProperties = properties;
-        this.webDriver = webDriver;
-    }
-
     public static void main(String[] args) {
         WebDriver webDriver = null;
         ChromeOptions chromeOptions = null;
         Properties properties = null;
-        CombinatorApplication combinatorApplication = null;
+
         try{
             properties = initializeProperties();
             String driverUrl = properties.getProperty("application.selenium.url");
@@ -43,10 +37,20 @@ public class CombinatorApplication {
             System.exit(1);
         } catch (Exception e){
             logger.error("Exception Occurred",e);
+            System.exit(1);
         }
 
-        combinatorApplication = new CombinatorApplication(webDriver, properties);
-
+        try {
+            CombinatorService combinatorService = new CombinatorServiceImpl(webDriver, properties);
+            combinatorService.scrapeData();
+        }catch(Exception e){
+            logger.error("Exception Occured", e);
+        }finally{
+            if(webDriver != null){
+                webDriver.close();
+                webDriver.quit();
+            }
+        }
     }
 
     private static WebDriver initializeWebDriver(String remoteDriverUrl) throws MalformedURLException{
