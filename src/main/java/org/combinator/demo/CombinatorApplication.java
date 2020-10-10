@@ -44,7 +44,7 @@ public class CombinatorApplication {
             CombinatorService combinatorService = new CombinatorServiceImpl(webDriver, properties);
             combinatorService.scrapeData();
         }catch(Exception e){
-            logger.error("Exception Occured", e);
+            logger.error("Exception Occurred", e);
         }finally{
             if(webDriver != null){
                 webDriver.close();
