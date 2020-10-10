@@ -27,8 +27,6 @@ public class CombinatorServiceImpl implements CombinatorService {
     String newsScoreXpath;
     String moreLink;
 
-    boolean lastPage;
-
     public CombinatorServiceImpl(WebDriver webDriver, Properties properties) {
         this.applicationProperties = properties;
         this.webDriver = webDriver;
@@ -37,7 +35,6 @@ public class CombinatorServiceImpl implements CombinatorService {
         this.newsLinkXpath = applicationProperties.getProperty("application.xpaths.newsLink");
         this.newsScoreXpath = applicationProperties.getProperty("application.xpaths.newsScore");
         this.moreLink = applicationProperties.getProperty("application.xpaths.moreLink");
-        this.lastPage = false;
     }
 
     @Override
@@ -55,20 +52,20 @@ public class CombinatorServiceImpl implements CombinatorService {
             String requestURL = getRequestURL(baseUrl, requestPath, i);
             logger.info("GET request for url  : " + requestURL);
             webDriver.get(requestURL);
-            isLastPage();
             webDriver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
             extractPageElements(newsList);
-            if(this.lastPage){
+            if(isLastPage()){
                 logger.info("last page : "+requestURL);
                 break;
             }
 
         }
         logger.info("total news list size : " + newsList.size());
+        newsList.forEach(System.out::println);
 
     }
 
-    public void extractPageElements(List newsList) {
+    public void extractPageElements(List<CombinatorNews> newsList) {
 
         List<WebElement> newsItems = this.webDriver.findElements(By.xpath(this.newsItemXpath));
         for (WebElement newsItem : newsItems) {
@@ -86,22 +83,19 @@ public class CombinatorServiceImpl implements CombinatorService {
 
     }
 
-    private void isLastPage(){
+    private boolean isLastPage(){
         try {
             webDriver.findElement(By.xpath(this.moreLink));
         }catch(NoSuchElementException e){
-            this.lastPage = true;
+            return true;
         }
+        return false;
     }
 
     private String getRequestURL(String baseUrl, String requestPath, int currentPageNumber) {
         String queryParamString = "?p=";
-        StringBuilder urlStringBuilder = new StringBuilder();
-        urlStringBuilder.append(baseUrl);
-        urlStringBuilder.append(requestPath);
-        urlStringBuilder.append(queryParamString);
-        urlStringBuilder.append(currentPageNumber);
-        return urlStringBuilder.toString();
+        String requestURL = baseUrl+requestPath+queryParamString+String.valueOf(currentPageNumber);
+        return requestURL;
     }
 
 }
